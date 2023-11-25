@@ -102,8 +102,7 @@ func (h *HTTPServer) Stop() error {
 
 func (h *HTTPServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// 每一个请求都有一个上下文，只有请求来了才初始化。
-	fmt.Printf("router %s - %s", r.Method, r.URL.Path)
-	node, err := h.getRouter(r.Method, r.URL.Path)
+	node, params, err := h.getRouter(r.Method, r.URL.Path)
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
 		_, _ = w.Write([]byte("404 NOT FOUND"))
@@ -111,6 +110,7 @@ func (h *HTTPServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	// 构造上下文
 	c := NewContext(w, r)
+	c.Params = params
 	node.handleFunc(c)
 }
 

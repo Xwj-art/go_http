@@ -7,6 +7,7 @@ type Context struct {
 	Request  *http.Request
 	Method   string
 	Pattern  string
+	Params   map[string]string
 }
 
 func NewContext(w http.ResponseWriter, r *http.Request) *Context {

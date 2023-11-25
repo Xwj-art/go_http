@@ -48,19 +48,37 @@ func (r *TrieRoot) GetTrieRoot(pattern string) (*Node, error) {
 			return nil, errors.New("不存在")
 		}
 	}
+	if root.handleFunc == nil {
+		return nil, errors.New("前缀正确，但是不存在handleFunc")
+	}
 	return root, nil
 }
 
 type Node struct {
 	// 唯一标识
 	part string
-	// 后代
+	// 静态路由后代
 	children map[string]*Node
 	// 数据
 	handleFunc HandleFunc
+	// 参数路由后代
+	paramChild *Node
+	// /study/golang | /study/:course | /study/:course/test
+	// 如果查找/study/java，先去静态路由golang那里查，找不到就去:course
+	// 静态路由一对一，动态路由一对n，只需要一个节点
 }
 
 func (n *Node) addNode(part string) *Node {
+	if strings.HasPrefix(part, ":") {
+		if n.paramChild == nil {
+			child := &Node{
+				part: part,
+			}
+			n.paramChild = child
+			return child
+		}
+		return n.paramChild
+	}
 	if n.children == nil {
 		n.children = make(map[string]*Node)
 	}
@@ -76,14 +94,17 @@ func (n *Node) addNode(part string) *Node {
 }
 
 func (n *Node) getNode(part string) *Node {
-	if n.children == nil {
+	if n.children == nil && n.paramChild == nil {
 		return nil
 	}
-	child, ok := n.children[part]
-	if !ok {
-		return nil
+	if n.children != nil {
+		node, ok := n.children[part]
+		if !ok {
+			return nil
+		}
+		return node
 	}
-	return child
+	return n.paramChild
 }
 
 func patternCheck(pattern string) {

@@ -3,6 +3,7 @@ package go_http
 import (
 	"errors"
 	"fmt"
+	"strings"
 )
 
 type router struct {
@@ -28,15 +29,20 @@ func (r *router) addRouter(method, pattern string, handleFunc HandleFunc) {
 	trieRoot.AddTrieRoot(pattern, handleFunc)
 }
 
-func (r *router) getRouter(method, pattern string) (*Node, error) {
+func (r *router) getRouter(method, pattern string) (*Node, map[string]string, error) {
+	params := make(map[string]string)
 	fmt.Printf("request router %s - %s\n", method, pattern)
 	if r.trees == nil {
-		return nil, errors.New("尚未添加路由")
+		return nil, nil, errors.New("尚未添加路由")
 	}
 	trieRoot := r.trees[method]
 	node, err := trieRoot.GetTrieRoot(pattern)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
-	return node, nil
+	if strings.HasPrefix(node.part, ":") {
+		params[node.part[1:]] = pattern
+		return node, params, nil
+	}
+	return node, nil, nil
 }
