@@ -87,10 +87,10 @@ func (n *Node) getNode(part string) *Node {
 }
 
 func patternCheck(pattern string) {
-	if strings.HasSuffix(pattern, "/") {
-		panic("pattern最后有/")
-	}
 	if !strings.HasPrefix(pattern, "/") {
 		panic("pattern不是以/开头")
+	}
+	if strings.HasSuffix(pattern, "/") {
+		panic("pattern最后有/")
 	}
 }

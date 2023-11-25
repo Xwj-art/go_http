@@ -36,7 +36,7 @@ func (r *router) getRouter(method, pattern string) (*Node, error) {
 	trieRoot := r.trees[method]
 	node, err := trieRoot.GetTrieRoot(pattern)
 	if err != nil {
-		return nil, errors.New("获取路由失败")
+		return nil, err
 	}
 	return node, nil
 }
