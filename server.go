@@ -112,6 +112,7 @@ func (h *HTTPServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	c := NewContext(w, r)
 	c.Params = params
 	node.handleFunc(c)
+	c.MyResponse.flashDataToResponse()
 }
 
 func (h *HTTPServer) GET(pattern string, handle HandleFunc) {
@@ -138,11 +139,11 @@ func (h *HTTPS) End() error {
 	return nil
 }
 
-func main() {
-	//http.HandleFunc("/login", func(w http.ResponseWriter, r *http.Request) {})
-	// 两者启动方式不一样，为了简化上层使用，需要进一步抽象
-	// http
-	//http.ListenAndServe(":8080", nil)
-	// https
-	//http.ListenAndServeTLS(":8080", "certFile", "keyFile", nil)
-}
+//func main() {
+//http.HandleFunc("/login", func(w http.ResponseWriter, r *http.Request) {})
+// 两者启动方式不一样，为了简化上层使用，需要进一步抽象
+// http
+//http.ListenAndServe(":8080", nil)
+// https
+//http.ListenAndServeTLS(":8080", "certFile", "keyFile", nil)
+//}
