@@ -112,7 +112,7 @@ func (h *HTTPServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	c := NewContext(w, r)
 	c.Params = params
 	node.handleFunc(c)
-	c.MyResponse.flashDataToResponse()
+	c.flashDataToResponse()
 }
 
 func (h *HTTPServer) GET(pattern string, handle HandleFunc) {

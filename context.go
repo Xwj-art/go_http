@@ -62,6 +62,48 @@ func (c *Context) Form(key string) (string, error) {
 	return value, nil
 }
 
+func (c *Context) BindJSON(dest any) error {
+	if c.cacheBody == nil {
+		c.cacheBody = c.Request.Body
+	}
+	decoder := json.NewDecoder(c.cacheBody)
+	decoder.DisallowUnknownFields()
+	return decoder.Decode(dest)
+}
+
+func (c *Context) JSON(code int, data any) {
+	c.MyResponse.SetStatusCode(code)
+	c.MyResponse.SetHeader("Context-Type", "application/json")
+	tmp, err := json.Marshal(data)
+	if err != nil {
+		c.MyResponse.SetStatusCode(http.StatusInternalServerError)
+		c.MyResponse.DelHeader("Context-Type")
+		panic("json.Marshal调用失败")
+	}
+	c.MyResponse.SetData(tmp)
+}
+func (c *Context) HTML(code int, html string) {
+	c.MyResponse.SetStatusCode(code)
+	c.MyResponse.SetHeader("Context-Type", "text/html")
+	c.MyResponse.SetData([]byte(html))
+}
+func (c *Context) TEXT(code int, text string) {
+	c.MyResponse.SetStatusCode(code)
+	c.MyResponse.SetHeader("Context-Type", "text/plain")
+	c.MyResponse.SetData([]byte(text))
+}
+
+func (c *Context) flashDataToResponse() {
+	// 顺序特定，不可更改
+	c.MyResponse.WriteHeader(c.MyResponse.statusCode)
+	for key, value := range c.MyResponse.header {
+		c.MyResponse.Header().Set(key, value)
+	}
+	c.MyResponse.Write(c.MyResponse.Data)
+}
+
+// MyResponse 将MyResponse在底层封装，并暴露几个改变属性的api给Context用
+
 type MyResponse struct {
 	http.ResponseWriter
 	header     map[string]string
@@ -78,34 +120,3 @@ func (r *MyResponse) SetHeader(key, value string) {
 }
 func (r *MyResponse) DelHeader(key string) { delete(r.header, key) }
 func (r *MyResponse) SetData(data []byte)  { r.Data = data }
-
-func (r *MyResponse) JSON(code int, data any) {
-	r.SetStatusCode(code)
-	r.SetHeader("Context-Type", "application/json")
-	tmp, err := json.Marshal(data)
-	if err != nil {
-		r.SetStatusCode(http.StatusInternalServerError)
-		r.DelHeader("Context-Type")
-		panic("json.Marshal调用失败")
-	}
-	r.SetData(tmp)
-}
-func (r *MyResponse) HTML(code int, html string) {
-	r.SetStatusCode(code)
-	r.SetHeader("Context-Type", "text/html")
-	r.SetData([]byte(html))
-}
-func (r *MyResponse) TEXT(code int, text string) {
-	r.SetStatusCode(code)
-	r.SetHeader("Context-Type", "text/plain")
-	r.SetData([]byte(text))
-}
-
-func (r *MyResponse) flashDataToResponse() {
-	// 顺序特定，不可更改
-	r.WriteHeader(r.statusCode)
-	for key, value := range r.header {
-		r.Header().Set(key, value)
-	}
-	r.Write(r.Data)
-}
